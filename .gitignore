@@ -1,0 +1,38 @@
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# PyInstaller / Build artifacts
+build/
+dist/
+*.spec
+
+# Windows heavy binaries (EXCEEDS GITHUB 100MB LIMIT)
+bin/
+*.exe
+
+# Temporary files & Render outputs
+outputs/*
+!outputs/.gitkeep
+temp/*
+!temp/.gitkeep
+backgrounds/*
+!backgrounds/.gitkeep
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+update_server.py

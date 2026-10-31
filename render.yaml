@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: threadviral
+    env: docker
+    plan: free
+    region: singapore
+    autoDeploy: true

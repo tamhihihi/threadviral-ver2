@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ThreadViral" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0B0F17" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Ghiền Đọc Comment Studio - Full Clone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0B0F17; color: #F8FAFC; }
+    .panel { background: #131B2E; border: 1px solid rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-800 bg-slate-950/90 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center font-bold text-lg">G</div>
+        <div>
+          <span class="font-bold text-base">Ghiền Đọc Comment Studio</span>
+          <span class="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">Dual-Text + Meme</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openMobileModal()" id="btnMobileConnect" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition"><span>📱 Dùng trên Điện thoại</span></button>
+        <input id="geminiKey" type="password" placeholder="Gemini API Key..."
+          class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs w-28 sm:w-44" />
+        <button onclick="autoConvertTts()" id="btnConvert"
+          class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition">
+          ✨ Tự động dịch Chữ Đọc TTS
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-7 flex-1">
+    
+    <!-- CỘT TRÁI: DANH SÁCH PHÂN CẢNH CHI TIẾT (7 CỘT) -->
+    <div class="lg:col-span-7 space-y-5">
+
+      <!-- PANEL CÀO BÀI VIẾT & BÌNH LUẬN THREADS TỰ ĐỘNG -->
+      <div class="panel rounded-2xl p-5 space-y-3.5 bg-gradient-to-br from-slate-900/95 via-[#131b2e] to-[#1e1528] border border-rose-500/25 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500/20 to-indigo-500/20 border border-rose-500/40 flex items-center justify-center text-rose-300 font-bold text-sm shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-bold text-white tracking-wide">CÀO LINK BÀI VIẾT & BÌNH LUẬN GỐC THREADS</h2>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">Tự Động 1-Click</span>
+              </div>
+              <p class="text-xs text-slate-400">Tự động lấy bài viết gốc (Topic) + các bình luận gốc nhiều tương tác nhất trên Threads</p>
+            </div>
+          </div>
+          <button onclick="fillSampleUrl()" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition hidden sm:inline-block">
+            Thử link mẫu
+          </button>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <div class="relative flex-1">
+            <input id="threadsUrl" type="text"
+              placeholder="Dán link bài viết Threads (VD: https://www.threads.net/@user/post/...)"
+              class="w-full bg-slate-950/90 border border-slate-700/80 focus:border-rose-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 transition outline-none" />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="maxCommentsSelect" class="bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-2.5 text-xs text-slate-300 outline-none">
+              <option value="5">5 cmt</option>
+              <option value="7" selected>7 cmt</option>
+              <option value="10">10 cmt</option>
+              <option value="15">15 cmt</option>
+            </select>
+
+            <button onclick="scrapeThreads()" id="btnScrape"
+              class="bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-rose-950 transition whitespace-nowrap">
+              <span>🚀 Cào Dữ Liệu</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="scrapeStatus" class="hidden text-xs py-2 px-3 rounded-xl border flex items-center justify-between"></div>
+      </div>
+
+      <div class="panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-rose-400 uppercase">Kịch Bản Phân Cảnh (Hiển thị vs Giọng đọc)</h2>
+            <p class="text-xs text-slate-400">Giữ nguyên chữ viết tắt trên thẻ ảnh nhưng đọc TTS thành tiếng Việt tự nhiên + chèn Meme cuối câu</p>
+          </div>
+          <button onclick="addScene()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg text-xs font-semibold">
+            + Thêm Comment
+          </button>
+        </div>
+
+        <!-- THANH CÔNG CỤ MEME REACTION -->
+        <div class="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold text-indigo-300 flex items-center gap-1">
+              <span>🎭 KHO MEME:</span>
+            </span>
+            <div id="memeChips" class="flex items-center gap-1.5 flex-wrap text-[11px]">
+              <span class="text-slate-400 text-xs">Đang tải meme...</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="document.getElementById('memeFileInput').click()"
+              class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 shadow transition" title="Tải lên Video (.mp4/.mov/.webm) hoặc Ảnh/GIF (.png/.jpg/.webp/.gif)">
+              <span>+ Thêm Meme (Video/Ảnh/GIF)</span>
+            </button>
+            <input type="file" id="memeFileInput" accept="video/*,image/*,.mp4,.mov,.webm,.avi,.mkv,.flv,.gif,.png,.jpg,.jpeg,.webp,.jfif,.bmp" class="hidden" onchange="uploadMemeFile(this)" />
+          </div>
+        </div>
+
+        <div id="scenesList" class="space-y-4 max-h-[540px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- CẤU HÌNH RENDER VIDEO & NHẠC NỀN -->
+
+      <div class="panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <h2 class="text-xs font-bold text-rose-400 uppercase tracking-wider">Cấu Hình Xuất Video & Âm Thanh</h2>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="document.getElementById('bgFileInput').click()" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline transition">
+              🎥 Đổi Video Nền (.mp4)
+            </button>
+            <input type="file" id="bgFileInput" accept="video/*" class="hidden" onchange="uploadBgFile(this)" />
+            <span class="text-[11px] text-slate-500">| 9:16 Shorts/TikTok</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Giọng đọc AI</label>
+            <select id="voiceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs">
+              <option value="vi-VN-HoaiMyNeural">Nữ - Hoài My (Chuẩn video mẫu)</option>
+              <option value="vi-VN-NamMinhNeural">Nam - Nam Minh</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Tốc độ đọc</label>
+            <select id="speedSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs">
+              <option value="+15%">+15% (Nhanh vừa)</option>
+              <option value="+20%" selected>+20% (Chuẩn Ghiền đọc comment)</option>
+              <option value="+25%">+25% (Rất nhanh)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Watermark chống Re-up</label>
+            <input id="watermarkInput" type="text" value="Fanpage: Ghiền đọc comment" oninput="updateLiveCard()"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs text-emerald-400 font-semibold mb-1">⚡ Tốc độ render</label>
+            <select id="resSelect" class="w-full bg-slate-900 border border-emerald-600/50 rounded-xl px-3 py-2 text-xs text-emerald-300 font-medium">
+              <option value="1080x1920" selected>🎬 1080p Full HD (~5-8s)</option>
+              <option value="720x1280">⚡ 720p Siêu Tốc (~3-5s)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ô CHỌN VÀ TẢI LÊN NHẠC NỀN (BGM) -->
+        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <span>🎵 NHẠC NỀN (BGM)</span>
+              <span class="text-[10px] font-normal text-slate-400">(Tự động lặp & cân chỉnh âm lượng nhỏ dưới giọng đọc)</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="togglePlayBgm()" id="btnPlayBgm"
+                class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1 transition">
+                <span>▶ Nghe thử</span>
+              </button>
+              <button type="button" onclick="document.getElementById('bgmFileInput').click()"
+                class="bg-amber-600/30 hover:bg-amber-600/40 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition">
+                <span>+ Tải MP3 Lên</span>
+              </button>
+              <input type="file" id="bgmFileInput" accept="audio/*" class="hidden" onchange="uploadBgmFile(this)" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-8">
+              <select id="bgmSelect" onchange="onBgmChanged()"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+                <option value="">-- Không dùng nhạc nền --</option>
+              </select>
+            </div>
+            <div class="sm:col-span-4 flex items-center gap-2">
+              <span class="text-xs text-slate-400 shrink-0">Âm lượng:</span>
+              <select id="bgmVolumeSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-slate-200 outline-none">
+                <option value="0.06">6% (Rất nhỏ)</option>
+                <option value="0.10">10% (Nhỏ)</option>
+                <option value="0.12" selected>12% (Chuẩn mẫu)</option>
+                <option value="0.18">18% (Vừa)</option>
+                <option value="0.25">25% (Lớn)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="renderVideo()" id="btnRender"
+          class="w-full bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 py-3.5 rounded-xl font-bold text-sm shadow-lg transition">
+          🎬 Xuất Video Hoàn Chỉnh (Chuẩn Mẫu Ghiền Đọc Comment)
+        </button>
+      </div>
+    </div>
+
+    <!-- CỘT PHẢI: KHUNG XEM TRƯỚC CHUẨN THẺ TRẮNG THREADS (5 CỘT) -->
+    <div class="lg:col-span-5 flex flex-col items-center">
+      <div class="sticky top-20 w-full max-w-[360px] space-y-3">
+        <div class="flex justify-between text-xs text-slate-400 px-1">
+          <span>📱 Xem trước giao diện thẻ</span>
+          <span id="activeSceneLabel">Cảnh #1</span>
+        </div>
+
+        <!-- KHUNG 9:16 -->
+        <div class="relative w-full aspect-[9/16] rounded-[30px] border-4 border-slate-800 bg-[#230c0c] overflow-hidden shadow-2xl flex flex-col items-center justify-center p-3">
+          
+          <!-- WATERMARK NỔI -->
+          <div id="prevWatermark" class="text-white font-bold italic text-xs mb-4 drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
+            Fanpage: Ghiền đọc comment
+          </div>
+
+          <!-- HỘP THẺ CHÍNH (WHITE CARD) -->
+          <div class="w-full bg-white text-slate-900 rounded-md p-3.5 shadow-lg border border-slate-200">
+            <div class="flex items-start gap-2.5">
+              <!-- Avatar + Dấu cộng -->
+              <div class="relative w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                <img id="prevAvImg" src="" alt="" class="hidden w-full h-full rounded-full object-cover" />
+                <span id="prevAvChar">U</span>
+                <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-black text-white text-[10px] flex items-center justify-center border border-white">+</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span id="prevAuthor" class="font-bold text-xs">trqnah._</span>
+                    <span class="text-[11px] text-slate-400 ml-1">1 ngày</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-xs">
+                    <span class="text-rose-500">❤️</span>
+                    <span class="text-slate-400 font-bold">•••</span>
+                  </div>
+                </div>
+                <p id="prevDisplayText" class="text-xs text-slate-900 mt-1 leading-snug whitespace-pre-line"></p>
+                <div class="flex items-center gap-4 text-[11px] text-slate-600 mt-2.5 pt-1">
+                  <span id="prevLikes">♡ 9.6K</span>
+                  <span id="prevComments">💬 571</span>
+                  <span id="prevReposts">↻ 438</span>
+                  <span id="prevShares">➢ 195</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HỘP THẺ REPLY XẾP CHỒNG (NẾU CÓ) -->
+          <div id="prevReplyBox" class="hidden w-full bg-white text-slate-900 rounded-md p-3.5 shadow-lg border border-slate-200 mt-1">
+            <p id="prevReplyText" class="text-xs text-slate-900 pl-11 font-medium"></p>
+          </div>
+
+          <!-- BẢNG HIỂN THỊ CÂU ĐỌC TTS -->
+          <div class="mt-4 w-full bg-black/70 backdrop-blur rounded-xl p-2.5 border border-white/10">
+            <div class="text-[10px] text-amber-400 font-semibold uppercase">🔊 Giọng AI sẽ đọc là:</div>
+            <p id="prevTtsText" class="text-[11px] text-slate-200 mt-0.5 italic"></p>
+          </div>
+
+          <video id="videoPlayer" controls class="hidden absolute inset-0 w-full h-full object-cover bg-black z-10"></video>
+          <div id="memePreviewBox" class="hidden absolute inset-0 w-full h-full bg-black/90 z-20 flex flex-col items-center justify-center p-4">
+            <div class="text-right w-full mb-2">
+              <button type="button" onclick="closeMemePreview()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-2.5 py-1 rounded-md font-bold">✕ Đóng xem trước</button>
+            </div>
+            <img id="memePreviewImg" class="max-w-full max-h-[80%] object-contain rounded-lg shadow-2xl border border-slate-700" />
+            <p id="memePreviewName" class="text-xs text-slate-300 mt-2 font-mono truncate max-w-full"></p>
+          </div>
+        </div>
+
+        <a id="downloadBtn" href="#" download target="_blank" class="hidden w-full bg-emerald-600 hover:bg-emerald-500 text-center py-3 rounded-xl font-bold text-xs block">
+          📥 Tải Video MP4 Về Máy
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Dữ liệu nạp sẵn đúng theo video mẫu của người dùng
+    let scenes = [
+      {
+        author: "trqnah._",
+        time_ago: "1 ngày",
+        display_text: "TOPIC : hãy kể 1 lần mà bạn cảm thấy bản thân bạn hãm vcl , hãm đéo chịu được ( chúng tôi nghe và không đánh giá )",
+        tts_text: "Tô pích: Hãy kể một lần mà bạn cảm thấy bản thân bạn hãm vãi cả lờ, hãm éo chịu được, chúng tôi nghe và không đánh giá.",
+        reply_display_text: "",
+        reply_tts_text: "",
+        likes: "9.6K", comments: "571", reposts: "438", shares: "195",
+        meme_file: ""
+      },
+      {
+        author: "continhtrungmayman",
+        time_ago: "1 ngày",
+        display_text: "T hôn đàn ông đã có vk trc mặt vk ngta luôn",
+        tts_text: "Tao hôn đàn ông đã có vợ trước mặt vợ người ta luôn.",
+        reply_display_text: "Cụ thể là bố t",
+        reply_tts_text: "Cụ thể là bố tao.",
+        likes: "4.3K", comments: "6", reposts: "47", shares: "14",
+        meme_file: "cat_punch.mp4"
+      },
+      {
+        author: "nhujj_2",
+        time_ago: "1 ngày",
+        display_text: "Bn cùng đội tuyển đi thi đc giải cái t lăn ra khóc 😢 ôi cái đme con hãm lồn",
+        tts_text: "Bạn cùng đội tuyển đi thi được giải cái tao lăn ra khóc, ôi cái đệt mẹ con hãm lờ.",
+        reply_display_text: "",
+        reply_tts_text: "",
+        likes: "3.1K", comments: "4", reposts: "16", shares: "6",
+        meme_file: "cat_surrender.mp4"
+      },
+      {
+        author: "_nartc",
+        time_ago: "1 ngày",
+        display_text: "Lúc đi ô tô thấy ghét mí thg xe máy hay tạt đầu ô tô vl. Mà đến lúc mình đi xe máy cx y chang v :)",
+        tts_text: "Lúc đi ô tô thấy ghét mấy thằng xe máy hay tạt đầu ô tô vãi lờ. Mà đến lúc mình đi xe máy cũng y chang vậy.",
+        reply_display_text: "",
+        reply_tts_text: "",
+        likes: "4.3K", comments: "4", reposts: "109", shares: "28",
+        meme_file: "bunny_smirk.mp4"
+      }
+    ];
+    let activeIdx = 0;
+    let availableMemes = [];
+    let availableBgms = [];
+    const bgmPlayer = new Audio();
+    let isBgmPlaying = false;
+
+    function renderList() {
+      const box = document.getElementById("scenesList");
+      box.innerHTML = "";
+      scenes.forEach((sc, i) => {
+        const div = document.createElement("div");
+        div.className = `p-4 rounded-xl border transition cursor-pointer space-y-2.5 ${
+          i === activeIdx ? "bg-slate-800/90 border-rose-500" : "bg-slate-900/60 border-slate-800"
+        }`;
+        div.onclick = () => { activeIdx = i; updateLiveCard(); renderList(); };
+
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded ${i === 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-indigo-500/20 text-indigo-300'}">
+                ${i === 0 ? '📌 TOPIC GỐC' : '💬 COMMENT #' + i}
+              </span>
+              ${sc.avatar_url ? `<img src="${sc.avatar_url}" class="w-5 h-5 rounded-full object-cover border border-slate-700 shrink-0" onerror="this.style.display='none'" />` : ''}
+              <input value="${sc.author}" onclick="event.stopPropagation()"
+                oninput="scenes[${i}].author=this.value; updateLiveCard()"
+                class="bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs w-36 font-semibold" />
+            </div>
+            ${scenes.length > 1 ? `<button onclick="event.stopPropagation(); scenes.splice(${i},1); activeIdx=0; renderList();" class="text-xs text-rose-400">Xoá</button>` : ''}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[10px] text-slate-400 uppercase font-semibold">1. Chữ hiển thị trên thẻ (Giữ viết tắt):</label>
+              <textarea rows="2" onclick="event.stopPropagation()"
+                oninput="scenes[${i}].display_text=this.value; updateLiveCard()"
+                class="w-full mt-1 bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs">${sc.display_text}</textarea>
+            </div>
+            <div>
+              <label class="text-[10px] text-amber-400 uppercase font-semibold">2. Chữ đọc lồng tiếng TTS (Đã dịch):</label>
+              <textarea rows="2" onclick="event.stopPropagation()"
+                oninput="scenes[${i}].tts_text=this.value; updateLiveCard()"
+                class="w-full mt-1 bg-slate-950 border border-amber-500/30 rounded-lg p-2 text-xs text-amber-200">${sc.tts_text}</textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+            <input value="${sc.reply_display_text || ''}" onclick="event.stopPropagation()"
+              oninput="scenes[${i}].reply_display_text=this.value; updateLiveCard()"
+              placeholder="➕ Bình luận nối tiếp / Plot twist (Tùy chọn, VD: Cụ thể là bố t)"
+              class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs" />
+            <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1" onclick="event.stopPropagation()">
+              <span class="text-[11px] text-indigo-400 font-semibold shrink-0">🎭 Meme:</span>
+              <select onchange="scenes[${i}].meme_file=this.value; renderList();" class="bg-transparent text-xs text-indigo-200 outline-none flex-1 truncate py-0.5">
+                <option value="" class="bg-slate-900 text-slate-400" ${!sc.meme_file ? 'selected' : ''}>-- Không chèn meme --</option>
+                ${availableMemes.map(m => `<option value="${m}" class="bg-slate-900 text-white" ${sc.meme_file === m ? 'selected' : ''}>${m}</option>`).join('')}
+              </select>
+              ${sc.meme_file ? `
+                <button type="button" onclick="previewMemeVideo('${sc.meme_file}')" class="text-xs text-indigo-400 hover:text-white px-1" title="Xem trước video meme này">
+                  👁️
+                </button>
+              ` : ''}
+              <button type="button" onclick="document.getElementById('memeFileInput').click()" class="text-xs text-indigo-400 hover:text-indigo-200 font-bold px-1" title="Tải thêm meme mới">
+                +
+              </button>
+            </div>
+          </div>
+        `;
+        box.appendChild(div);
+      });
+      updateLiveCard();
+    }
+
+    function updateLiveCard() {
+      const sc = scenes[activeIdx] || scenes[0];
+      document.getElementById("videoPlayer").classList.add("hidden");
+      closeMemePreview();
+      document.getElementById("activeSceneLabel").innerText = `Cảnh #${activeIdx + 1}`;
+      document.getElementById("prevWatermark").innerText = document.getElementById("watermarkInput").value;
+      const avImg = document.getElementById("prevAvImg");
+      const avChar = document.getElementById("prevAvChar");
+      if (sc.avatar_url) {
+        avImg.src = sc.avatar_url;
+        avImg.classList.remove("hidden");
+        avChar.classList.add("hidden");
+        avImg.onerror = () => {
+          avImg.classList.add("hidden");
+          avChar.classList.remove("hidden");
+          avChar.innerText = (sc.author || "U")[0].toUpperCase();
+        };
+      } else {
+        avImg.classList.add("hidden");
+        avChar.classList.remove("hidden");
+        avChar.innerText = (sc.author || "U")[0].toUpperCase();
+      }
+      document.getElementById("prevAuthor").innerText = sc.author;
+      document.getElementById("prevDisplayText").innerText = sc.display_text;
+      document.getElementById("prevTtsText").innerText = sc.tts_text + (sc.reply_tts_text ? " -> " + sc.reply_tts_text : "");
+      document.getElementById("prevLikes").innerText = "♡ " + sc.likes;
+      document.getElementById("prevComments").innerText = "💬 " + sc.comments;
+      document.getElementById("prevReposts").innerText = "↻ " + sc.reposts;
+      document.getElementById("prevShares").innerText = "➢ " + sc.shares;
+
+      const replyBox = document.getElementById("prevReplyBox");
+      if (sc.reply_display_text && sc.reply_display_text.trim()) {
+        replyBox.classList.remove("hidden");
+        document.getElementById("prevReplyText").innerText = sc.reply_display_text;
+      } else {
+        replyBox.classList.add("hidden");
+      }
+    }
+
+    function addScene() {
+      scenes.push({
+        author: "user_threads",
+        time_ago: "1 ngày",
+        display_text: "Nhập comment viết tắt ở đây (VD: Hqua t đi pv gặp đúng nyc làm sếp vcl)...",
+        tts_text: "Hôm qua tao đi phỏng vấn gặp đúng người yêu cũ làm sếp vãi cả lờ.",
+        reply_display_text: "",
+        reply_tts_text: "",
+        likes: "1.2K", comments: "15", reposts: "8", shares: "4",
+        meme_file: ""
+      });
+      activeIdx = scenes.length - 1;
+      renderList();
+    loadBgms();
+    loadMemes();
+    }
+
+    function fillSampleUrl() {
+      document.getElementById("threadsUrl").value = "https://www.threads.net/@pin_gookluck/post/DfGw8m1E4_w";
+    }
+
+    async function scrapeThreads() {
+      const urlInput = document.getElementById("threadsUrl");
+      const url = urlInput.value.trim();
+      const statusBox = document.getElementById("scrapeStatus");
+      const btn = document.getElementById("btnScrape");
+
+      if (!url) {
+        statusBox.className = "text-xs py-2 px-3 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300 flex items-center justify-between";
+        statusBox.innerHTML = "<span>⚠️ Vui lòng dán link bài viết Threads cần cào!</span>";
+        statusBox.classList.remove("hidden");
+        urlInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳ Đang cào...</span>`;
+      statusBox.className = "text-xs py-2 px-3 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-300 flex items-center gap-2";
+      statusBox.innerHTML = `
+        <svg class="animate-spin h-3.5 w-3.5 text-amber-300 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Đang mở trình duyệt headless, phân tích bài viết & trích xuất bình luận gốc... (khoảng 5-8 giây)</span>
+      `;
+      statusBox.classList.remove("hidden");
+
+      try {
+        const maxComments = parseInt(document.getElementById("maxCommentsSelect").value) || 7;
+        const geminiKey = document.getElementById("geminiKey").value.trim() || null;
+
+        const res = await fetch("/api/scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: url,
+            max_comments: maxComments,
+            gemini_api_key: geminiKey
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể cào dữ liệu từ Threads");
+        }
+
+        if (data.scenes && data.scenes.length > 0) {
+          scenes = data.scenes;
+          activeIdx = 0;
+          renderList();
+    loadBgms();
+    loadMemes();
+          updateLiveCard();
+
+          statusBox.className = "text-xs py-2 px-3 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 flex items-center justify-between";
+          statusBox.innerHTML = `
+            <span>🎉 <b>Đã cào thành công!</b> Bài viết gốc của <b>@${data.topic?.author || 'tác giả'}</b> và <b>${data.comments_count || (scenes.length - 1)}</b> bình luận gốc thực tế.</span>
+            <button onclick="document.getElementById('scrapeStatus').classList.add('hidden')" class="text-slate-400 hover:text-white ml-2 text-xs font-bold">✕</button>
+          `;
+        } else {
+          throw new Error("Không tìm thấy bình luận nào trên bài viết.");
+        }
+      } catch (err) {
+        statusBox.className = "text-xs py-2 px-3 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300 flex items-center justify-between";
+        statusBox.innerHTML = `
+          <span>❌ <b>Lỗi:</b> ${err.message}</span>
+          <button onclick="document.getElementById('scrapeStatus').classList.add('hidden')" class="text-slate-400 hover:text-white ml-2 text-xs font-bold">✕</button>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>🚀 Cào Dữ Liệu</span>`;
+      }
+    }
+
+    
+    async function loadBgms() {
+      try {
+        const res = await fetch("/api/bgm");
+        const data = await res.json();
+        if (data.bgms) {
+          availableBgms = data.bgms;
+          const select = document.getElementById("bgmSelect");
+          const curVal = select.value;
+          select.innerHTML = '<option value="">-- Không dùng nhạc nền --</option>';
+          availableBgms.forEach(bgm => {
+            const opt = document.createElement("option");
+            opt.value = "bgm/" + bgm;
+            opt.innerText = "🎵 " + bgm;
+            select.appendChild(opt);
+          });
+          if (curVal && availableBgms.some(b => "bgm/" + b === curVal)) {
+            select.value = curVal;
+          } else if (availableBgms.length > 0) {
+            select.value = "bgm/" + availableBgms[0];
+          }
+        }
+      } catch (e) {
+        console.error("Lỗi tải danh sách BGM:", e);
+      }
+    }
+
+    async function loadMemes() {
+      try {
+        const res = await fetch("/api/memes");
+        const data = await res.json();
+        if (data.memes) {
+          availableMemes = data.memes;
+          renderMemeChips();
+          renderList();
+        }
+      } catch (e) {
+        console.error("Lỗi tải danh sách Memes:", e);
+      }
+    }
+
+    function renderMemeChips() {
+      const container = document.getElementById("memeChips");
+      if (!container) return;
+      if (availableMemes.length === 0) {
+        container.innerHTML = '<span class="text-slate-500 italic text-[11px]">(Chưa có meme nào trong memes/)</span>';
+        return;
+      }
+      container.innerHTML = availableMemes.map(m => {
+        const isImg = /\.(png|jpe?g|webp|jfif|bmp)$/i.test(m);
+        const icon = isImg ? "🖼️" : "🎬";
+        return `
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-900/40 text-indigo-300 border border-indigo-500/30 font-medium cursor-pointer hover:bg-indigo-900/60 transition" onclick="previewMemeVideo('${m}')" title="Bấm để xem thử">
+          <span>${icon} ${m}</span>
+          <button type="button" onclick="event.stopPropagation(); deleteMeme('${m}')" class="text-rose-400 hover:text-rose-300 ml-0.5 font-bold" title="Xóa meme">×</button>
+        </span>
+      `;}).join("");
+    }
+
+    function onBgmChanged() {
+      if (isBgmPlaying) {
+        bgmPlayer.pause();
+        const sel = document.getElementById("bgmSelect").value;
+        if (sel) {
+          bgmPlayer.src = "/" + sel;
+          bgmPlayer.play();
+        } else {
+          isBgmPlaying = false;
+          document.getElementById("btnPlayBgm").innerHTML = "<span>▶ Nghe thử</span>";
+        }
+      }
+    }
+
+    function togglePlayBgm() {
+      const sel = document.getElementById("bgmSelect").value;
+      const btn = document.getElementById("btnPlayBgm");
+      if (!sel) {
+        alert("Vui lòng chọn một bản nhạc nền từ danh sách!");
+        return;
+      }
+      if (isBgmPlaying) {
+        bgmPlayer.pause();
+        isBgmPlaying = false;
+        btn.innerHTML = "<span>▶ Nghe thử</span>";
+        btn.classList.remove("bg-rose-600", "border-rose-500", "text-white");
+      } else {
+        bgmPlayer.src = "/" + sel;
+        const vol = parseFloat(document.getElementById("bgmVolumeSelect").value) || 0.12;
+        bgmPlayer.volume = Math.min(1.0, vol * 3); // Nghe thử to hơn một chút cho rõ
+        bgmPlayer.loop = true;
+        bgmPlayer.play();
+        isBgmPlaying = true;
+        btn.innerHTML = "<span>⏸ Dừng</span>";
+        btn.classList.add("bg-rose-600", "border-rose-500", "text-white");
+      }
+    }
+
+    function closeMemePreview() {
+      const box = document.getElementById("memePreviewBox");
+      if (box) box.classList.add("hidden");
+    }
+
+    function previewMemeVideo(name) {
+      if (!name) return;
+      const isImg = /\.(png|jpe?g|webp|jfif|bmp)$/i.test(name);
+      const player = document.getElementById("videoPlayer");
+      const previewBox = document.getElementById("memePreviewBox");
+      const previewImg = document.getElementById("memePreviewImg");
+      const previewName = document.getElementById("memePreviewName");
+      
+      if (isImg) {
+        player.classList.add("hidden");
+        player.pause();
+        if (previewImg) previewImg.src = "/memes/" + name + "?t=" + Date.now();
+        if (previewName) previewName.innerText = "🖼️ " + name;
+        if (previewBox) previewBox.classList.remove("hidden");
+      } else {
+        if (previewBox) previewBox.classList.add("hidden");
+        player.src = "/memes/" + name + "?t=" + Date.now();
+        player.classList.remove("hidden");
+        player.play();
+      }
+    }
+
+    async function uploadBgFile(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch("/api/upload-bg", { method: "POST", body: formData });
+        const data = await res.json();
+        if (res.ok) {
+          alert("✓ Đã cập nhật video nền mới thành công: " + data.filename);
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể tải lên"));
+        }
+      } catch (e) {
+        alert("Lỗi tải lên video nền: " + e.message);
+      } finally {
+        input.value = "";
+      }
+    }
+
+    async function uploadBgmFile(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const btn = document.getElementById("btnPlayBgm");
+      btn.innerText = "⏳ Đang tải...";
+      try {
+        const res = await fetch("/api/upload-bgm", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.filename) {
+          await loadBgms();
+          document.getElementById("bgmSelect").value = "bgm/" + data.filename;
+          alert("✓ Đã tải lên nhạc nền thành công: " + data.filename);
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể tải lên"));
+        }
+      } catch (err) {
+        alert("Lỗi tải lên nhạc nền: " + err.message);
+      } finally {
+        btn.innerHTML = "<span>▶ Nghe thử</span>";
+        input.value = "";
+      }
+    }
+
+    async function uploadMemeFile(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("/api/upload-meme", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.filename) {
+          await loadMemes();
+          if (scenes[activeIdx]) {
+            scenes[activeIdx].meme_file = data.filename;
+            renderList();
+          }
+          alert("✓ Đã tải lên meme mới thành công: " + data.filename);
+        } else {
+          alert("Lỗi: " + (data.detail || "Không thể tải lên"));
+        }
+      } catch (err) {
+        alert("Lỗi tải lên meme: " + err.message);
+      } finally {
+        input.value = "";
+      }
+    }
+
+    async function deleteMeme(name) {
+      if (!confirm(`Bạn có chắc muốn xóa meme "${name}" không?`)) return;
+      try {
+        const res = await fetch("/api/memes/" + encodeURIComponent(name), { method: "DELETE" });
+        if (res.ok) {
+          scenes.forEach(s => { if (s.meme_file === name) s.meme_file = ""; });
+          await loadMemes();
+        }
+      } catch (e) {
+        alert("Lỗi khi xóa meme: " + e.message);
+      }
+    }
+
+    async function autoConvertTts() {
+      const btn = document.getElementById("btnConvert");
+      btn.disabled = true;
+      btn.innerText = "⏳ Đang dịch từ lóng...";
+      try {
+        const res = await fetch("/api/normalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenes,
+            api_key: document.getElementById("geminiKey").value.trim() || null
+          })
+        });
+        const data = await res.json();
+        if (data.scenes) {
+          scenes = data.scenes;
+          renderList();
+    loadBgms();
+    loadMemes();
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "✨ Tự động dịch Chữ Đọc TTS";
+      }
+    }
+
+    async function renderVideo() {
+      const btn = document.getElementById("btnRender");
+      const player = document.getElementById("videoPlayer");
+      const dl = document.getElementById("downloadBtn");
+      btn.disabled = true;
+      btn.innerText = "⚡ Đang Render Siêu Tốc Direct FFmpeg (~5s)...";
+
+      try {
+        const res = await fetch("/api/render", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            scenes,
+            voice: document.getElementById("voiceSelect").value,
+            speed: document.getElementById("speedSelect").value,
+            watermark_text: document.getElementById("watermarkInput").value,
+            moving_watermark: true,
+            resolution: document.getElementById("resSelect") ? document.getElementById("resSelect").value : "1080x1920",
+            bg_video_path: "background.mp4",
+            bgm_path: document.getElementById("bgmSelect").value || null,
+            bgm_volume: parseFloat(document.getElementById("bgmVolumeSelect").value) || 0.12
+          })
+        });
+        const data = await res.json();
+        if (data.video_url) {
+          player.src = data.video_url + "?t=" + Date.now();
+          player.classList.remove("hidden");
+          player.play();
+          dl.href = data.video_url;
+          dl.classList.remove("hidden");
+        }
+      } catch (err) {
+        alert("Lỗi khi xuất video!");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🎬 Xuất Video Hoàn Chỉnh (Chuẩn Mẫu Ghiền Đọc Comment)";
+      }
+    }
+
+    renderList();
+    loadBgms();
+    loadMemes();
+    let cachedMobileUrl = "";
+
+    async function openMobileModal() {
+      const modal = document.getElementById("mobileModal");
+      const urlInput = document.getElementById("mobileUrlInput");
+      const qrImg = document.getElementById("qrCodeImg");
+      modal.classList.remove("hidden");
+
+      if (!cachedMobileUrl) {
+        try {
+          const res = await fetch("/api/network-info");
+          const data = await res.json();
+          cachedMobileUrl = (window.location.hostname !== "127.0.0.1" && window.location.hostname !== "localhost") ? window.location.origin : (data.mobile_url || window.location.origin);
+        } catch (e) {
+          cachedMobileUrl = window.location.origin;
+        }
+      }
+
+      urlInput.value = cachedMobileUrl;
+      qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(cachedMobileUrl);
+    }
+
+    function closeMobileModal() {
+      document.getElementById("mobileModal").classList.add("hidden");
+    }
+
+    function copyMobileUrl() {
+      const input = document.getElementById("mobileUrlInput");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(() => {
+        const msg = document.getElementById("copySuccessMsg");
+        msg.classList.remove("hidden");
+        setTimeout(() => msg.classList.add("hidden"), 2000);
+      });
+    }
+  </script>
+  <!-- MODAL KẾT NỐI ĐIỆN THOẠI (IPHONE & ANDROID) -->
+  <div id="mobileModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl relative text-slate-200">
+      <button onclick="closeMobileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-sm font-bold w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center transition">✕</button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg border border-emerald-500/30">
+          📱
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Chạy trên Điện thoại (iPhone & Android)</h3>
+          <p class="text-[11px] text-slate-400">Điều khiển tạo video Threads từ điện thoại</p>
+        </div>
+      </div>
+
+      <!-- QR CODE CONTAINER -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col items-center justify-center space-y-2.5">
+        <div class="bg-white p-2 rounded-xl shadow-lg">
+          <img id="qrCodeImg" src="" alt="QR Code" class="w-40 h-40 object-contain" />
+        </div>
+        <p class="text-[11px] text-slate-400 text-center">Mở <b>Camera</b> trên iPhone / Android quét mã để mở ngay</p>
+      </div>
+
+      <!-- LINK TRUY CẬP -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Hoặc mở trình duyệt nhập link:</span>
+          <span id="copySuccessMsg" class="text-emerald-400 text-[11px] hidden">✓ Đã copy link</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="mobileUrlInput" type="text" readonly
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-indigo-300 font-mono select-all outline-none" />
+          <button onclick="copyMobileUrl()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition">
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- HƯỚNG DẪN DÙNG -->
+      <div class="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-3 text-[11px] space-y-1.5 text-slate-300">
+        <div class="font-bold text-indigo-300 flex items-center gap-1">
+          <span>💡 Cách dùng mượt mà:</span>
+        </div>
+        <p>1. Điện thoại và máy tính cần kết nối <b>chung một mạng Wi-Fi</b>.</p>
+        <p>2. <b>iPhone (Safari):</b> Bấm nút Chia sẻ (hình vuông có mũi tên lên) ➔ Chọn <b>"Thêm vào MH chính"</b> để dùng toàn màn hình như App tải từ App Store!</p>
+        <p>3. <b>Android (Chrome):</b> Bấm dấu 3 chấm ➔ Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào Màn hình chính"</b>.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
