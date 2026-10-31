@@ -10,6 +10,7 @@ from typing import List, Optional, Dict, Any
 import requests
 import shutil
 import socket
+import traceback
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -38,6 +39,10 @@ if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
     ms_playwright = os.path.join(local_app_data, "ms-playwright")
     if os.path.exists(ms_playwright):
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = ms_playwright
+
+for b in [os.path.join(os.path.dirname(__file__), "bin"), os.path.abspath("bin")]:
+    if os.path.exists(b) and b not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = b + os.pathsep + os.environ.get("PATH", "")
 
 os.makedirs("outputs", exist_ok=True)
 os.makedirs("temp", exist_ok=True)
@@ -225,6 +230,7 @@ def get_font(size: int, bold: bool = False):
         "C:/Windows/Fonts/segoeuib.ttf" if bold else "C:/Windows/Fonts/segoeui.ttf",
         "/System/Library/Fonts/Supplemental/Arial Bold.ttf" if bold else "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
     ]
     for p in candidates:
         if os.path.exists(p):
@@ -705,7 +711,12 @@ async def render_video(req: RenderRequest):
             raise HTTPException(status_code=500, detail=f"Lỗi khi mã hóa video: {err_msg}")
 
         return {"status": "success", "video_url": f"/outputs/{out_name}"}
-
+    except HTTPException:
+        raise
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"[Render Fatal Error]\n{tb}")
+        raise HTTPException(status_code=500, detail=f"Lỗi Render chi tiết:\n{tb}")
     finally:
         for f in temp_files:
             if os.path.exists(f):
@@ -1078,11 +1089,12 @@ def get_lan_ip():
 @app.get("/api/network-info")
 async def get_network_info():
     lan_ip = get_lan_ip()
+    port = int(os.environ.get("PORT", 8000))
     return {
         "lan_ip": lan_ip,
-        "port": 8000,
-        "local_url": "http://127.0.0.1:8000",
-        "mobile_url": f"http://{lan_ip}:8000"
+        "port": port,
+        "local_url": f"http://127.0.0.1:{port}",
+        "mobile_url": f"http://{lan_ip}:{port}"
     }
 
 @app.get("/manifest.json")

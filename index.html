@@ -812,21 +812,30 @@
             bgm_volume: parseFloat(document.getElementById("bgmVolumeSelect").value) || 0.12
           })
         });
-        const data = await res.json();
+
+        const textResponse = await res.text();
+        let data = null;
+        try {
+          data = JSON.parse(textResponse);
+        } catch(e) {}
+
         if (!res.ok) {
-          throw new Error((data && data.detail) ? data.detail : ("Máy chủ phản hồi mã lỗi HTTP " + res.status));
+          let errDetail = (data && data.detail) ? data.detail : textResponse;
+          if (errDetail.length > 2500) errDetail = errDetail.slice(0, 2500) + "\n...[đã rút gọn]";
+          throw new Error(`[Mã lỗi HTTP ${res.status}]:\n${errDetail}`);
         }
-        if (data.video_url) {
+
+        if (data && data.video_url) {
           player.src = data.video_url + "?t=" + Date.now();
           player.classList.remove("hidden");
           player.play();
           dl.href = data.video_url;
           dl.classList.remove("hidden");
         } else {
-          throw new Error("Không nhận được video_url từ máy chủ!");
+          throw new Error("Máy chủ không trả về đường dẫn video_url!");
         }
       } catch (err) {
-        alert("❌ Lỗi khi xuất video: " + (err.message || err));
+        showErrorModal(err.message || String(err));
       } finally {
         btn.disabled = false;
         btn.innerText = "🎬 Xuất Video Hoàn Chỉnh (Chuẩn Mẫu Ghiền Đọc Comment)";
@@ -871,6 +880,30 @@
         msg.classList.remove("hidden");
         setTimeout(() => msg.classList.add("hidden"), 2000);
       });
+    }
+    function showErrorModal(errorText) {
+      const modal = document.getElementById("errorModal");
+      const box = document.getElementById("errorTextBox");
+      if (box && modal) {
+        box.innerText = errorText;
+        modal.classList.remove("hidden");
+      } else {
+        alert("❌ Full lỗi:\n" + errorText);
+      }
+    }
+
+    function closeErrorModal() {
+      const modal = document.getElementById("errorModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function copyErrorText() {
+      const box = document.getElementById("errorTextBox");
+      if (box) {
+        navigator.clipboard.writeText(box.innerText).then(() => {
+          alert("✓ Đã copy toàn bộ lỗi! Bạn hãy dán vào khung chat để tôi sửa ngay.");
+        });
+      }
     }
   </script>
   <!-- MODAL KẾT NỐI ĐIỆN THOẠI (IPHONE & ANDROID) -->
@@ -919,6 +952,31 @@
         <p>1. Điện thoại và máy tính cần kết nối <b>chung một mạng Wi-Fi</b>.</p>
         <p>2. <b>iPhone (Safari):</b> Bấm nút Chia sẻ (hình vuông có mũi tên lên) ➔ Chọn <b>"Thêm vào MH chính"</b> để dùng toàn màn hình như App tải từ App Store!</p>
         <p>3. <b>Android (Chrome):</b> Bấm dấu 3 chấm ➔ Chọn <b>"Cài đặt ứng dụng"</b> hoặc <b>"Thêm vào Màn hình chính"</b>.</p>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL FULL LỖI CHI TIẾT -->
+  <div id="errorModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-rose-500/50 rounded-2xl max-w-lg w-full p-5 space-y-3.5 shadow-2xl relative text-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2 text-rose-400 font-bold text-sm">
+          <span>❌ BÁO CÁO FULL LỖI CHI TIẾT</span>
+        </div>
+        <button onclick="closeErrorModal()" class="text-slate-400 hover:text-white font-bold text-sm w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-1.5">
+        <p class="text-xs text-slate-300">Dưới đây là toàn bộ thông tin lỗi kỹ thuật từ hệ thống:</p>
+        <pre id="errorTextBox" class="bg-slate-950 p-3 rounded-xl border border-rose-900/60 text-rose-300 font-mono text-[11px] leading-relaxed max-h-72 overflow-y-auto whitespace-pre-wrap select-all break-all"></pre>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button onclick="copyErrorText()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow">
+          <span>📋 Sao chép toàn bộ lỗi (Copy)</span>
+        </button>
+        <button onclick="closeErrorModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-2 rounded-xl transition">
+          Đóng
+        </button>
       </div>
     </div>
   </div>
