@@ -789,6 +789,11 @@
       const player = document.getElementById("videoPlayer");
       const dl = document.getElementById("downloadBtn");
       btn.disabled = true;
+      if (window.location.hostname.endsWith("github.io")) {
+        alert("⚠️ BẠN ĐANG MỞ TRÊN GITHUB PAGES!\n\nGitHub Pages chỉ hiển thị trang web tĩnh, KHÔNG THỂ chạy mã nguồn Python, FFmpeg và AI để render video.\n\n👉 CÁCH KHẮC PHỤC:\n1. Bật file 'Chay_Server_Web_Va_Dien_Thoai.bat' trên máy tính và mở link http://<IP-may-tinh>:8000 trên điện thoại.\n2. HOẶC liên kết repo này với Render.com (miễn phí) để có link cloud 24/7!");
+        return;
+      }
+
       btn.innerText = "⚡ Đang Render Siêu Tốc Direct FFmpeg (~5s)...";
 
       try {
@@ -808,15 +813,20 @@
           })
         });
         const data = await res.json();
+        if (!res.ok) {
+          throw new Error((data && data.detail) ? data.detail : ("Máy chủ phản hồi mã lỗi HTTP " + res.status));
+        }
         if (data.video_url) {
           player.src = data.video_url + "?t=" + Date.now();
           player.classList.remove("hidden");
           player.play();
           dl.href = data.video_url;
           dl.classList.remove("hidden");
+        } else {
+          throw new Error("Không nhận được video_url từ máy chủ!");
         }
       } catch (err) {
-        alert("Lỗi khi xuất video!");
+        alert("❌ Lỗi khi xuất video: " + (err.message || err));
       } finally {
         btn.disabled = false;
         btn.innerText = "🎬 Xuất Video Hoàn Chỉnh (Chuẩn Mẫu Ghiền Đọc Comment)";
